@@ -21,7 +21,8 @@
     "./providers/AppProvider",
     "@adonisjs/core",
     "@adonisjs/lucid",
-    "adonis5-scheduler"
+    "adonis5-scheduler",
+    "@adonisjs/drive-s3"
   ],
   "metaFiles": [
     {

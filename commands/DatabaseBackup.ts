@@ -2,6 +2,7 @@ import { BaseCommand } from '@adonisjs/core/build/standalone'
 import DatabaseDumper from 'App/Helpers/DatabaseDumper'
 import Zipper from 'App/Helpers/Zipper'
 import FileToProcess from 'App/Utilities/FileToProcess'
+import S3Uploader from 'App/Helpers/S3Uploader'
 
 export default class DatabaseBackup extends BaseCommand {
   /**
@@ -30,10 +31,16 @@ export default class DatabaseBackup extends BaseCommand {
 
   public async run() {
     this.logger.info('Starting Database Backup...')
+
     const fileToProcess = new FileToProcess('./', 'db_backup')
 
-    await new DatabaseDumper(fileToProcess).run()
-    await new Zipper(fileToProcess).run()
+    try {
+      await new DatabaseDumper(fileToProcess).run()
+      await new Zipper(fileToProcess).run()
+      await new S3Uploader(fileToProcess).run()
+    } catch (err) {
+      // send errors to slack
+    }
     this.logger.info('Finished Database Backup...')
   }
 }

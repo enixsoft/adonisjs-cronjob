@@ -11,9 +11,9 @@ export default class Zipper {
   }
 
   public async run() {
-    logger.info('Starting Database zipping...')
+    logger.info('Starting zip archive...')
     await this.zipFile()
-    logger.info('Finished Database zipping...')
+    logger.info('Finished zip archive...')
   }
 
   public zipFile() {
@@ -22,6 +22,7 @@ export default class Zipper {
       const archive = archiver('zip', {
         zlib: { level: 9 },
       })
+
       const error = (err) => {
         reject(err)
         // output.on('close', () => {
@@ -30,12 +31,13 @@ export default class Zipper {
         // });
         // output.end();
       }
+
       output.on('close', function () {
-        logger.info(archive.pointer() + ' total bytes')
-        logger.info('archiver has been finalized and the output file descriptor has closed.')
+        logger.info('ZIP archive has ' + archive.pointer() + ' total bytes.')
         resolve()
         output.end()
       })
+
       archive.on('error', error)
       // pipe archive data to the file
       archive.pipe(output)

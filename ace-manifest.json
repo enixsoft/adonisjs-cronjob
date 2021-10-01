@@ -7,7 +7,7 @@
       },
       "commandPath": "./commands/DatabaseBackup",
       "commandName": "database:backup",
-      "description": "",
+      "description": "Backs up the configured database",
       "args": [],
       "aliases": [],
       "flags": []
