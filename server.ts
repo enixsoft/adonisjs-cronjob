@@ -16,4 +16,4 @@ import { Ignitor } from '@adonisjs/core/build/standalone'
 
 sourceMapSupport.install({ handleUncaughtExceptions: false })
 
-new Ignitor(__dirname).ace().handle(process.argv.slice(2))
+new Ignitor(__dirname).ace().handle(['scheduler:run'])
