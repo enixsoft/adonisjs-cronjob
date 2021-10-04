@@ -1,4 +1,4 @@
-export default class FileToProcess {
+export default class Backup {
   private filePath: string
   private fileName: string
 
@@ -8,7 +8,7 @@ export default class FileToProcess {
   }
 
   public getFile(includePath: boolean, extension: string) {
-    return (includePath ? this.filePath : '') + this.fileName + `.${extension}`
+    return (includePath ? this.filePath : '') + this.fileName + (extension ? `.${extension}` : '')
   }
 
   private addTimestamp(fileName: string) {

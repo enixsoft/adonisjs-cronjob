@@ -1,8 +1,10 @@
 import { BaseCommand } from '@adonisjs/core/build/standalone'
-import DatabaseDumper from 'App/Helpers/DatabaseDumper'
+import DatabaseExporter from 'App/Helpers/DatabaseExporter'
 import Zipper from 'App/Helpers/Zipper'
-import FileToProcess from 'App/Utilities/FileToProcess'
+import Backup from 'App/Utilities/Backup'
 import S3Uploader from 'App/Helpers/S3Uploader'
+import SlackNotifier from 'App/Helpers/SlackNotifier'
+import Env from '@ioc:Adonis/Core/Env'
 
 export default class DatabaseBackup extends BaseCommand {
   /**
@@ -32,15 +34,29 @@ export default class DatabaseBackup extends BaseCommand {
   public async run() {
     this.logger.info('Starting Database Backup...')
 
-    const fileToProcess = new FileToProcess('./', 'db_backup')
+    const backup = new Backup(
+      Env.get('BACKUP_LOCAL_PATH', './'),
+      Env.get('BACKUP_NAME', 'db_backup')
+    )
+    const slackNotifier = new SlackNotifier()
 
     try {
-      await new DatabaseDumper(fileToProcess).run()
-      await new Zipper(fileToProcess).run()
-      await new S3Uploader(fileToProcess).run()
+      await new DatabaseExporter(backup).run()
+      await new Zipper(backup).run()
+      await new S3Uploader(backup).run()
+
+      const success =
+        'SUCCESS: Database backup ' + backup.getFile(false, '') + ' has been created and uploaded.'
+
+      slackNotifier.notify(success)
+      this.logger.success(success)
     } catch (err) {
-      // send errors to slack
+      const error =
+        'ERROR: Database backup ' + backup.getFile(false, '') + ' has failed with error: ' + err
+
+      slackNotifier.notify(error)
+      this.logger.error(error)
     }
-    this.logger.info('Finished Database Backup...')
+    this.logger.info('Finished Database Backup.')
   }
 }

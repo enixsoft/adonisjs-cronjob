@@ -1,11 +1,11 @@
 import fs from 'fs'
 import Drive, { S3DriverContract } from '@ioc:Adonis/Core/Drive'
-import logger from '@ioc:Adonis/Core/Logger'
-import FileToProcess from 'App/Utilities/FileToProcess'
+import Logger from '@ioc:Adonis/Core/Logger'
+import Backup from 'App/Utilities/Backup'
 import Env from '@ioc:Adonis/Core/Env'
 
 export default class S3Uploader {
-  private file: FileToProcess
+  private backup: Backup
 
   private s3: S3DriverContract
 
@@ -13,39 +13,36 @@ export default class S3Uploader {
 
   private deleteAfterUpload: boolean
 
-  constructor(file: FileToProcess) {
-    this.file = file
+  constructor(backup: Backup) {
+    this.backup = backup
     this.s3 = Drive.use('s3')
     this.s3Path = Env.get('S3_PATH', './')
     this.deleteAfterUpload = Env.get('DELETE_BACKUPS_AFTER_UPLOAD', false)
   }
 
   public async run() {
-    logger.info('Starting uploading to AWS S3...')
+    Logger.info('Starting upload to AWS S3...')
     await this.uploadToS3()
-    logger.info('Finished uploading to AWS S3...')
+    Logger.info('Finished upload to AWS S3.')
   }
 
   public async uploadToS3() {
-    // Creates a readable stream from file
-    const fileStream = await fs.createReadStream(this.file.getFile(true, 'zip'))
+    const fileStream = await fs.createReadStream(this.backup.getFile(true, 'zip'))
 
-    // Uploads the file to Amazon S3
-    const s3Path = `${this.s3Path}${this.file.getFile(false, 'zip')}`
+    const s3Path = `${this.s3Path}${this.backup.getFile(false, 'zip')}`
     await this.s3.putStream(s3Path, fileStream)
     // const fileUrl = await this.s3.getUrl(s3Path)
 
-    // Destroy the readable stream
     fileStream.destroy()
 
     if (this.deleteAfterUpload) {
-      fs.unlink(this.file.getFile(true, 'zip'), (err) => {
+      fs.unlink(this.backup.getFile(true, 'zip'), (err) => {
         if (err) throw err
-        logger.info(`${this.file.getFile(true, 'sql')} was deleted.`)
+        Logger.info(`${this.backup.getFile(true, 'zip')} was deleted.`)
       })
-      fs.unlink(this.file.getFile(true, 'sql'), (err) => {
+      fs.unlink(this.backup.getFile(true, 'sql'), (err) => {
         if (err) throw err
-        logger.info(`${this.file.getFile(true, 'sql')} was deleted.`)
+        Logger.info(`${this.backup.getFile(true, 'sql')} was deleted.`)
       })
     }
   }
